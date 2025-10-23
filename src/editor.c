@@ -215,7 +215,7 @@ exec:
             break;
         }
         _editor_move_line(pos.line - n);
-        while (pos.line - pos.scroll < 0){
+        while (pos.line < pos.scroll){
             pos.scroll--;
         }
         break;
@@ -230,6 +230,7 @@ exec:
     case 'l': {
         char *line = buffer[pos.line].line;
         size_t lineLength = editor_line_length(line);
+        if (pos.col == lineLength) break;
         if (pos.col > lineLength) break;
         if (lineLength < pos.col + n)
             pos.col = lineLength;

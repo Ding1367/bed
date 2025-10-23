@@ -12,7 +12,7 @@ void ui_end(void);
 void ui_get_size(int *rows, int *cols);
 void ui_get_theme(ui_theme_t *th);
 void ui_set_theme(const ui_theme_t *th);
-void ui_move_cursor(int y, int x);
+void ui_move_cursor(unsigned int y, unsigned int x);
 void ui_print(const char *str, size_t len);
 void ui_refresh(void);
 void ui_clear(void);

@@ -13,13 +13,15 @@ typedef struct ui_cell {
 } ui_cell_t;
 
 static struct termios orig;
-int rows, cols;
-//static int y, x;
-static int mv_y, mv_x;
+static unsigned int rows, cols;
+static struct {
+    unsigned int y, x;
+} state;
+static unsigned int mv_y, mv_x;
 //static int fg_color, bg_color;
 //static char style;
 static ui_cell_t *front, *back;
-ui_theme_t theme;
+static ui_theme_t theme;
 
 static void _ui_get_size(void){
     struct winsize sz;
@@ -62,9 +64,24 @@ void ui_set_theme(const ui_theme_t *th){
     theme = *th;
 }
 
-void ui_move_cursor(int y, int x){
+void ui_move_cursor(unsigned int y, unsigned int x){
     mv_y = y;
     mv_x = x;
+}
+
+static void _ui_move_cursor(unsigned int y, unsigned int x){
+    if (state.x == x && state.y == y) return;
+    int diffX = (int)(state.x - x);
+    int diffY = (int)(state.y - y);
+    if (diffX && diffY){
+        printf("\x1b[%u;%uH", y, x);
+    } else if (diffX){
+        printf("\x1b[%uG", x);
+    } else {
+        printf("\x1b[%uH", y);
+    }
+    state.x = x;
+    state.y = y;
 }
 
 void ui_print(const char *str, size_t len){
@@ -76,15 +93,16 @@ void ui_print(const char *str, size_t len){
 }
 
 void ui_refresh(void){
-    for (int y = 0; y < rows; y++){
-        int n = 0;
-        printf("\x1b[%dH", y + 1);
-        for (int x = 0; x < cols; x++){
+    for (unsigned int y = 0; y < rows; y++){
+        unsigned int n = 0;
+        for (unsigned int x = 0; x < cols; x++){
             int idx = y * cols + x;
             int ch = back[idx].ch;
             if (front[idx].ch != ch){
-                if (ch)
-                    printf("\x1b[%dG%c", x + 1, ch);
+                if (ch){
+                    _ui_move_cursor(y + 1, x + 1);
+                    putchar(ch);
+                }
                 front[idx].ch = ch;
                 n = ch ? 0 : n + 1;
             }
