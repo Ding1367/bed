@@ -12,6 +12,13 @@ typedef struct ui_cell {
     char ch;
 } ui_cell_t;
 
+static uint64_t _ui_hash_string(const char *s){
+    uint64_t hash = 0xcbf29ce484222325;
+    while (*s)
+        hash = (hash ^ *s++) * 0x100000001b3;
+    return hash;
+}
+
 static struct termios orig;
 static unsigned int rows, cols;
 static struct {
@@ -28,6 +35,11 @@ static void _ui_get_size(void){
     ioctl(STDIN_FILENO, TIOCGWINSZ, &sz);
     rows = sz.ws_row;
     cols = sz.ws_col;
+}
+
+int ui_get_hl(const char *name, ui_highlight_t *th){
+}
+int ui_set_hl(const char *name, const ui_highlight_t *hl){
 }
 
 void ui_init(void){
@@ -74,11 +86,11 @@ static void _ui_move_cursor(unsigned int y, unsigned int x){
     int diffX = (int)(state.x - x);
     int diffY = (int)(state.y - y);
     if (diffX && diffY){
-        printf("\x1b[%u;%uH", y, x);
+        printf("\x1b[%u;%uH", y + 1, x + 1);
     } else if (diffX){
-        printf("\x1b[%uG", x);
+        printf("\x1b[%uG", x + 1);
     } else {
-        printf("\x1b[%uH", y);
+        printf("\x1b[%uH", y + 1);
     }
     state.x = x;
     state.y = y;
@@ -100,7 +112,7 @@ void ui_refresh(void){
             int ch = back[idx].ch;
             if (front[idx].ch != ch){
                 if (ch){
-                    _ui_move_cursor(y + 1, x + 1);
+                    _ui_move_cursor(y, x);
                     putchar(ch);
                 }
                 front[idx].ch = ch;
@@ -110,7 +122,7 @@ void ui_refresh(void){
         if (n)
             printf("\x1b[K");
     }
-    printf("\x1b[%d;%dH", mv_y + 1, mv_x + 1);
+    _ui_move_cursor(mv_y, mv_x);
     fflush(stdout);
 }
 

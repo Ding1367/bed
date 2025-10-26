@@ -2,16 +2,18 @@
 #define __BED_UI_H__
 #include <stddef.h>
 
-typedef struct ui_theme {
-    int editor_bg;
-    int statusline_bg;
-} ui_theme_t;
+typedef struct ui_highlight {
+    int bg, fg;
+    char style;
+} ui_highlight_t;
 
 void ui_init(void);
 void ui_end(void);
 void ui_get_size(int *rows, int *cols);
-void ui_get_theme(ui_theme_t *th);
-void ui_set_theme(const ui_theme_t *th);
+// returns if the highlight was found
+int ui_get_hl(const char *name, ui_highlight_t *th);
+// returns -1 on error, 0 if a value was overwritten, and 1 if the highlight is unique
+int ui_set_hl(const char *name, const ui_highlight_t *hl);
 void ui_move_cursor(unsigned int y, unsigned int x);
 void ui_print(const char *str, size_t len);
 void ui_refresh(void);
